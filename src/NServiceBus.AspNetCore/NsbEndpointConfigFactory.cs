@@ -36,7 +36,7 @@ namespace NServiceBus.AspNetCore
         private static void AddCustomBehaviors(EndpointConfiguration epConfig)
         {
             //add custom behaviors
-            epConfig.Pipeline.Register(typeof(IncomingNsbMessageContextBehavior), "Persists authenticated user if one exists in the request");
+            epConfig.Pipeline.Register(typeof(IncomingNsbMessageContextBehavior), "Adds support for IIncomingNsbMessageContextAccessor.");
         }
 
         private static void SetLicense(EndpointConfiguration epConfig, IServiceProvider services)
