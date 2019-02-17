@@ -14,35 +14,55 @@ namespace NServiceBus.AspNetCore
     public static class ApplicationBuilderNsbExtensions
     {
         /// <summary>
-        /// Starts the NSB Endpoints added using <see cref="NsbServiceCollectionExtensions.AddNServiceBusEndpoint(IServiceCollection, string, string, Action{EndpointConfiguration})"/>.
+        /// Starts the NSB Endpoints added using <see cref="NsbServiceCollectionExtensions.AddNServiceBusEndpoint(IServiceCollection, string, Action{EndpointConfiguration})"/>.
         /// Also configured NSB Logging to use Microsoft's <see cref="ILogger"/>.
         /// </summary>
         /// <param name="app"></param>
         public static void UseNServiceBusEndpoints(this IApplicationBuilder app)
         {
+            if (app == null)
+                throw new ArgumentNullException(nameof(app));
+
             //get all pre-configured configs
-            var configs = app.ApplicationServices.GetServices<NsbConfigContainer>();
+            var configs = app.ApplicationServices.GetServices<NsbConfigContainer>().ToArray();
 
             if (!configs.Any())
                 throw new InvalidOperationException("UseNServiceBusEndpoints first requires a call to NsbServiceCollectionExtensions.AddNServiceBusEndpoint.");
 
+            var duplicateEndpointName = configs
+                .GroupBy(x => x.EndpointName)
+                .Where(x => x.Count() > 1)
+                .Select(x => x.Key)
+                .FirstOrDefault();
 
-            //set up NServiceBus logging to use Microsoft ILogger
-            var logFactory = LogManager.Use<MicrosoftLogFactory>();
-            logFactory.UseMsFactory(app.ApplicationServices.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>());
+            if (duplicateEndpointName != null)
+                throw new InvalidOperationException($"More than one endpoint with name '{duplicateEndpointName}' has been defined.");
 
-
+            UseILogger(app.ApplicationServices);
 
             if (!(app.ApplicationServices.GetRequiredService<IMessageSessionProvider>() is MessageSessionProvider provider))
                 throw new InvalidOperationException("IMessageSessionProvider service is not of expected type MessageSessionProvider.");
 
             foreach (var config in configs)
             {
-                var instance = Endpoint.Start(config.EPConfig).GetAwaiter().GetResult();
+                var endpointConfiguration = config.EndpointConfigurationFactory();
+
+                var instance = Endpoint.Start(endpointConfiguration).GetAwaiter().GetResult();
 
                 provider.RegisterEndpointInstance(instance, config.EndpointName);
             }
         }
 
+        private static void UseILogger(IServiceProvider services)
+        {
+            //set up NServiceBus logging to use Microsoft ILogger, if it exists.
+
+            var loggerFactory = services.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
+
+            if (loggerFactory != null)
+            {
+                LogManager.Use<MicrosoftLogFactory>().UseMsFactory(loggerFactory);
+            }
+        }
     }
 }

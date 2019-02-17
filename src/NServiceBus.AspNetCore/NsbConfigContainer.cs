@@ -1,9 +1,17 @@
-﻿namespace NServiceBus.AspNetCore
+﻿using System;
+
+namespace NServiceBus.AspNetCore
 {
     class NsbConfigContainer
     {
-        public EndpointConfiguration EPConfig { get; set; }
+        public NsbConfigContainer(string endpointName, Func<EndpointConfiguration> endpointConfigurationFactory)
+        {
+            EndpointName = endpointName;
+            EndpointConfigurationFactory = endpointConfigurationFactory;
+        }
 
-        public string EndpointName { get; set; }
+        public Func<EndpointConfiguration> EndpointConfigurationFactory { get; private set; }
+
+        public string EndpointName { get; private set; }
     }
 }
