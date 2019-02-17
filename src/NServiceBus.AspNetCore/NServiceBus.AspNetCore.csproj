@@ -10,14 +10,13 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <AssemblyName>NServiceBus.ObjectBuilder.MSDependencyInjection</AssemblyName>
-    <RootNamespace>NServiceBus.ObjectBuilder.MSDependencyInjection</RootNamespace>
     <PackageIconUrl>http://s3.amazonaws.com/nuget.images/NServiceBus_32.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/NArnott/NServiceBus.AspNetCore</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NArnott/NServiceBus.AspNetCore</RepositoryUrl>
     <RepositoryType>github</RepositoryType>
     <PackageId>NServiceBus.AspNetCore</PackageId>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   
   <ItemGroup>
