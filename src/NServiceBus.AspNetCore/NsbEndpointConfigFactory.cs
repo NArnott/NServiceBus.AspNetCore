@@ -10,7 +10,6 @@ namespace NServiceBus.AspNetCore
     {
         internal static EndpointConfiguration Create(
             string endpointName,
-            string connectionString,
             IServiceCollection serviceCollection,
             IServiceProvider serviceProvider,
             Action<EndpointConfiguration> setupAction)
@@ -28,7 +27,7 @@ namespace NServiceBus.AspNetCore
 
             AddCustomBehaviors(epConfig);
 
-            setupAction?.Invoke(epConfig);
+            setupAction(epConfig);
 
             return epConfig;
         }
@@ -43,8 +42,8 @@ namespace NServiceBus.AspNetCore
         {
             var logger = services.GetService<ILogger<NsbEndpointConfigFactory>>();
 
-            var config = services.GetRequiredService<IConfiguration>();
-            var licenseText = config["NServiceBusLicenseText"];
+            var config = services.GetService<IConfiguration>();
+            var licenseText = config?["NServiceBusLicenseText"];
 
             if (!string.IsNullOrWhiteSpace(licenseText))
             {
