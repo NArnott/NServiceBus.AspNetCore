@@ -1,0 +1,52 @@
+﻿#https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=vsts&tabs=schema
+
+variables:
+  BuildConfiguration: Release
+  BuildPlatform: Any CPU
+
+resources:
+- repo: self
+
+trigger:
+  branches:
+    include: ["master"]
+
+jobs:
+- job: Primary
+  pool: Hosted VS2017
+
+  steps:
+  - task: NuGetToolInstaller@0
+    displayName: 'Use NuGet 4.4.1'
+    inputs:
+      versionSpec: 4.4.1
+
+  - task: NuGetCommand@2
+    displayName: 'NuGet restore'
+    inputs:
+      command: restore
+      restoreSolution: '*.sln'
+           
+  - task: VSBuild@1
+    displayName: 'Build Visual Studio solution'
+    inputs:
+      solution: '*.sln'
+      platform: '$(BuildPlatform)'
+      configuration: '$(BuildConfiguration)'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet test'
+    inputs:
+      command: test
+      projects: '**/*Tests.csproj'
+      arguments: '--no-build --configuration $(BuildConfiguration)'
+
+  - task: CopyFiles@2
+    displayName: 'Copy NuGet Packages to: $(build.artifactstagingdirectory)'
+    inputs:
+      Contents: '**\bin\$(BuildConfiguration)\*.nupkg'
+      TargetFolder: '$(build.artifactstagingdirectory)'
+      flattenFolders: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
