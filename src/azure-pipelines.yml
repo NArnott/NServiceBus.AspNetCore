@@ -25,12 +25,12 @@ jobs:
     displayName: 'NuGet restore'
     inputs:
       command: restore
-      restoreSolution: '*.sln'
+      restoreSolution: 'src/*.sln'
            
   - task: VSBuild@1
     displayName: 'Build Visual Studio solution'
     inputs:
-      solution: '*.sln'
+      solution: 'src/*.sln'
       platform: '$(BuildPlatform)'
       configuration: '$(BuildConfiguration)'
 
