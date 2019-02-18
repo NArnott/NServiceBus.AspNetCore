@@ -46,21 +46,21 @@ IMessageSession can be injected into controller or other AspNetCore pipeline ser
 
 Example:
 ```CSharp
-    public class TestController : ControllerBase
-    {
-        private readonly IMessageSession _nsb;
-    
-        public TestController(IMessageSession nsb) 
-        { 
-            _nsb = nsb;
-        }
-        
-        [HttpPost]
-        public async Task SendCommand()
-        {
-            await _nsb.Send(new TestCommand());
-        }
+public class TestController : ControllerBase
+{
+    private readonly IMessageSession _nsb;
+
+    public TestController(IMessageSession nsb) 
+    { 
+        _nsb = nsb;
     }
+
+    [HttpPost]
+    public async Task SendCommand()
+    {
+        await _nsb.Send(new TestCommand());
+    }
+}
 ```
 
 ### IIncomingNsbMessageContextAccessor
@@ -69,22 +69,22 @@ IIncomingNsbMessageContextAccessor can be injected into services used by the NSe
 
 Example:
 ```CSharp
-    public class SomeDataStore
-    {
-        private readonly IMessageProcessingContext _context;
-    
-        public SomeDataStore(IIncomingNsbMessageContextAccessor contextAccessor) 
-        { 
-            _context = contextAccessor.Context;
-        }
-        
-        public async Task DoSomethingAsync()
-        {
-            //...
-            
-            await _context.Publish(new NotifyOfSomethingEvent());
-        }
+public class SomeDataStore
+{
+    private readonly IMessageProcessingContext _context;
+
+    public SomeDataStore(IIncomingNsbMessageContextAccessor contextAccessor) 
+    { 
+        _context = contextAccessor.Context;
     }
+
+    public async Task DoSomethingAsync()
+    {
+        //...
+
+        await _context.Publish(new NotifyOfSomethingEvent());
+    }
+}
 ```
 
 ### INsbContext
@@ -95,20 +95,20 @@ In the context of a AspNetCore request, a call to INsbContext.Reply will fail wi
 
 Example:
 ```CSharp
-    public class SomeDataStore
-    {
-        private readonly INsbContext _context;
-    
-        public SomeDataStore(INsbContext context) 
-        { 
-            _context = context;
-        }
-        
-        public async Task DoSomethingAsync()
-        {
-            //...
-            
-            await _context.Publish(new NotifyOfSomethingEvent());
-        }
+public class SomeDataStore
+{
+    private readonly INsbContext _context;
+
+    public SomeDataStore(INsbContext context) 
+    { 
+        _context = context;
     }
+
+    public async Task DoSomethingAsync()
+    {
+        //...
+
+        await _context.Publish(new NotifyOfSomethingEvent());
+    }
+}
 ```
