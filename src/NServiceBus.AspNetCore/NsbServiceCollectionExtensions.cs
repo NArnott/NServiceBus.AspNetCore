@@ -31,7 +31,7 @@ namespace NServiceBus.AspNetCore
             services.TryAddSingleton<IMessageSessionProvider, MessageSessionProvider>();
             services.TryAddSingleton(x => x.GetRequiredService<IMessageSessionProvider>().GetMessageSession()); //default IMessageSession provider
             services.TryAddSingleton<IIncomingNsbMessageContextAccessor, IncomingNsbMessageContextAccessor>();
-            services.TryAddTransient<INsbContext, NsbContext>();
+            services.TryAddScoped<INsbContext, NsbContext>();
 
             services.AddTransient(serviceProvider =>
             {
