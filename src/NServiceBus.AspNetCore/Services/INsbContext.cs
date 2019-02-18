@@ -5,5 +5,9 @@
     /// </summary>
     public interface INsbContext : IMessageProcessingContext
     {
+        /// <summary>
+        /// Returns true if currently in an NSB Pipeline request. Returns false if in an AspNetCore request.
+        /// </summary>
+        bool IsInNsbPipeline { get; }
     }
 }

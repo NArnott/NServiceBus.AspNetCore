@@ -19,7 +19,10 @@ namespace NServiceBus.AspNetCore.Services
         IMessageProcessingContext MessageContext => (_realPiplineContext as IMessageProcessingContext) ?? throw new InvalidOperationException("Current NSB Context is not for an incoming message. IMessageProcessingContext specific items are not allowed.");
 
 
-        ContextBag IExtendable.Extensions => _realPiplineContext.Extensions;
+        ContextBag IExtendable.Extensions => MessageContext.Extensions;
+
+        bool INsbContext.IsInNsbPipeline => _realPiplineContext is IMessageProcessingContext;
+
 
         #region IPipelineContext
 
