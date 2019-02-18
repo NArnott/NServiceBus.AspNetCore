@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NServiceBus.AspNetCore.SampleApp.BusMessages;
+using NServiceBus.AspNetCore.SampleApp.Stores;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace NServiceBus.AspNetCore.SampleApp
 {
@@ -15,13 +18,29 @@ namespace NServiceBus.AspNetCore.SampleApp
 
         public IConfiguration Configuration { get; }
 
+        public string EndpointName { get; } = "MyEndpoint";
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<MemoryStore>();
+
+            services.AddMvcCore().AddApiExplorer();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddNServiceBusEndpoint("MyEndpoint", endpointConfiguration =>
+            services.AddSwaggerGen(x =>
             {
-                endpointConfiguration.UseTransport<LearningTransport>();
+                x.SwaggerDoc("v1", new Info()
+                {
+                    Title = "TestApi"
+                });
+            });
+
+            //add NSB Endpoint
+            services.AddNServiceBusEndpoint(EndpointName, endpointConfiguration =>
+            {
+                var transport = endpointConfiguration.UseTransport<LearningTransport>();
+
+                transport.Routing().RouteToEndpoint(typeof(TestCommand), EndpointName);
             });
         }
 
@@ -33,9 +52,15 @@ namespace NServiceBus.AspNetCore.SampleApp
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseNServiceBusEndpoints();
-
+            app.UseSwagger();
+            app.UseSwaggerUI(x =>
+            {
+                x.SwaggerEndpoint($"../swagger/v1/swagger.json", "V1");
+            });
             app.UseMvc();
+
+            //start NSB endpoint.
+            app.UseNServiceBusEndpoints();
         }
     }
 }
