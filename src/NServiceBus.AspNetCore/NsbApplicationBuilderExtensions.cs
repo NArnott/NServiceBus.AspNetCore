@@ -14,11 +14,11 @@ namespace NServiceBus.AspNetCore
     public static class ApplicationBuilderNsbExtensions
     {
         /// <summary>
-        /// Starts the NSB Endpoints added using <see cref="NsbServiceCollectionExtensions.AddNServiceBusEndpoint(IServiceCollection, string, Action{EndpointConfiguration})"/>.
+        /// Starts all configured NServiceBus endpoints.
         /// Also configured NSB Logging to use Microsoft's <see cref="ILogger"/>.
         /// </summary>
         /// <param name="app"></param>
-        public static void UseNServiceBusEndpoints(this IApplicationBuilder app)
+        public static void UseNServiceBus(this IApplicationBuilder app)
         {
             if (app == null)
                 throw new ArgumentNullException(nameof(app));
@@ -27,7 +27,7 @@ namespace NServiceBus.AspNetCore
             var configs = app.ApplicationServices.GetServices<NsbConfigContainer>().ToArray();
 
             if (!configs.Any())
-                throw new InvalidOperationException("UseNServiceBusEndpoints first requires a call to NsbServiceCollectionExtensions.AddNServiceBusEndpoint.");
+                throw new InvalidOperationException("No NServiceBus endpoints defined.");
 
             var duplicateEndpointName = configs
                 .GroupBy(x => x.EndpointName)

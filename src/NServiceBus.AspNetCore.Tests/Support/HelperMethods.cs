@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NServiceBus.AspNetCore.Tests.Support;
 using NServiceBus.AspNetCore.Tests.TestNsbItems;
+using System;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -22,15 +23,21 @@ namespace NServiceBus.AspNetCore.Tests
             return mock.Object;
         }
 
-        public static IServiceCollection AddTestNsbEndpoint(this IServiceCollection services, [CallerMemberName] string callerName = null)
+        public static NsbBuilder AddTestNsbEndpoint(
+            this IServiceCollection services,
+            Action configCalled = null,
+            [CallerMemberName] string callerName = null
+            )
         {
-            services.AddNServiceBusEndpoint(callerName, x => x.ApplyTestConfigs(callerName));
+            var builder = services.AddNServiceBus().AddNsbEndpoint(callerName, x => x.ApplyTestConfigs(callerName, configCalled));
 
-            return services;
+            return builder;
         }
 
-        public static void ApplyTestConfigs(this EndpointConfiguration endpointConfiguration, string endpointName)
+        public static void ApplyTestConfigs(this EndpointConfiguration endpointConfiguration, string endpointName, Action configCalled)
         {
+            configCalled?.Invoke();
+
             var transport = endpointConfiguration.UseTransport<LearningTransport>();
 
             transport.Routing().RouteToEndpoint(typeof(TestCommand), endpointName);

@@ -19,7 +19,7 @@ namespace NServiceBus.AspNetCore.Tests
             var appBuilder = Services.ToApplicationBuilder();
 
             //act
-            appBuilder.UseNServiceBusEndpoints();
+            appBuilder.UseNServiceBus();
         }
 
         [Fact]
@@ -32,7 +32,7 @@ namespace NServiceBus.AspNetCore.Tests
 
 
             //act
-            appBuilder.UseNServiceBusEndpoints();
+            appBuilder.UseNServiceBus();
 
 
             //assert
@@ -41,7 +41,7 @@ namespace NServiceBus.AspNetCore.Tests
 
             var finalLog = log.ToString();
 
-            Assert.Contains("NServiceBus.AspNetCore.NsbEndpointConfigFactory", finalLog);
+            Assert.Contains("NServiceBus.AspNetCore.EndpointConfigurationFactory", finalLog);
             Assert.Contains("NServiceBus.AspNetCore.Tests.TestNsbItems.TestCommand", finalLog);
         }
 
@@ -55,7 +55,7 @@ namespace NServiceBus.AspNetCore.Tests
             var appBuilder = Services.ToApplicationBuilder();
 
             //act/assert
-            Assert.Throws<InvalidOperationException>(() => appBuilder.UseNServiceBusEndpoints());
+            Assert.Throws<InvalidOperationException>(() => appBuilder.UseNServiceBus());
         }
 
         [Fact]
@@ -65,7 +65,53 @@ namespace NServiceBus.AspNetCore.Tests
             var appBuilder = Services.ToApplicationBuilder();
 
             //act/assert
-            Assert.Throws<InvalidOperationException>(() => appBuilder.UseNServiceBusEndpoints());
+            Assert.Throws<InvalidOperationException>(() => appBuilder.UseNServiceBus());
+        }
+
+        [Fact]
+        public void CanSetPreAndPostConfigurations()
+        {
+            //arrange
+            bool preConfigCalled = false;
+            bool configCalled = false;
+            bool postConfigCalled = false;
+
+            Services
+                .AddTestNsbEndpoint(() =>
+                {
+                    Assert.True(preConfigCalled);
+                    Assert.False(configCalled);
+                    Assert.False(postConfigCalled);
+
+                    configCalled = true;
+                })
+                .AddGlobalEndpointPreConfigurator(x =>
+                {
+                    Assert.False(preConfigCalled);
+                    Assert.False(configCalled);
+                    Assert.False(postConfigCalled);
+
+                    preConfigCalled = true;
+                })
+                .AddGlobalEndpointPostConfigurator(x =>
+                {
+                    Assert.True(preConfigCalled);
+                    Assert.True(configCalled);
+                    Assert.False(postConfigCalled);
+
+                    postConfigCalled = true;
+                });
+
+            var appBuilder = Services.ToApplicationBuilder();
+
+
+            //act
+            appBuilder.UseNServiceBus();
+
+            //assert
+            Assert.True(preConfigCalled);
+            Assert.True(configCalled);
+            Assert.True(postConfigCalled);
         }
     }
 }

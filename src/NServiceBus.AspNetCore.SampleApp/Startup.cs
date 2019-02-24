@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +19,9 @@ namespace NServiceBus.AspNetCore.SampleApp
 
         public IConfiguration Configuration { get; }
 
-        public string EndpointName { get; } = "MyEndpoint";
+        public string Endpoint1Name { get; } = "MyEndpoint1";
+
+        public string Endpoint2Name { get; } = "MyEndpoint2";
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -35,13 +38,26 @@ namespace NServiceBus.AspNetCore.SampleApp
                 });
             });
 
-            //add NSB Endpoint
-            services.AddNServiceBusEndpoint(EndpointName, endpointConfiguration =>
-            {
-                var transport = endpointConfiguration.UseTransport<LearningTransport>();
+            services
+                .AddNServiceBus()
+                //add NSB Endpoint 1
+                .AddNsbEndpoint(Endpoint1Name, endpointConfiguration =>
+                {
+                    var transport = endpointConfiguration.UseTransport<LearningTransport>();
 
-                transport.Routing().RouteToEndpoint(typeof(TestCommand), EndpointName);
-            });
+                    transport.Routing().RouteToEndpoint(typeof(TestCommand), Endpoint1Name);
+                })
+                //add NSB Endpoint 2
+                .AddNsbEndpoint(Endpoint2Name, endpointConfiguration =>
+                {
+                    var transport = endpointConfiguration.UseTransport<LearningTransport>();
+
+                    transport.Routing().RouteToEndpoint(typeof(TestCommand), Endpoint2Name);
+                })
+                .AddGlobalEndpointPostConfigurator(x =>
+                {
+                    //configure all endpoints here
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -60,7 +76,7 @@ namespace NServiceBus.AspNetCore.SampleApp
             app.UseMvc();
 
             //start NSB endpoint.
-            app.UseNServiceBusEndpoints();
+            app.UseNServiceBus();
         }
     }
 }

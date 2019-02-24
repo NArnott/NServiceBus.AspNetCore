@@ -1,18 +1,19 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NServiceBus.AspNetCore.Behaviors;
 using System;
 
 namespace NServiceBus.AspNetCore
 {
-    class NsbEndpointConfigFactory
+    class EndpointConfigurationFactory
     {
         internal static EndpointConfiguration Create(
             string endpointName,
             IServiceCollection serviceCollection,
             IServiceProvider serviceProvider,
-            Action<EndpointConfiguration> setupAction)
+            Action<EndpointConfiguration> configureEndpoint)
         {
             var epConfig = new EndpointConfiguration(endpointName);
 
@@ -27,7 +28,21 @@ namespace NServiceBus.AspNetCore
 
             AddCustomBehaviors(epConfig);
 
-            setupAction(epConfig);
+            var configOptions = serviceProvider.GetService<IOptions<EndpointConfigurationOptions>>()?.Value;
+
+            if (configOptions != null)
+            {
+                foreach (var configurator in configOptions.GlobalPreConfigurators)
+                    configurator(epConfig);
+            }
+
+            configureEndpoint?.Invoke(epConfig);
+
+            if (configOptions != null)
+            {
+                foreach (var configurator in configOptions.GlobalPostConfigurators)
+                    configurator(epConfig);
+            }
 
             return epConfig;
         }
@@ -40,7 +55,7 @@ namespace NServiceBus.AspNetCore
 
         private static void SetLicense(EndpointConfiguration epConfig, IServiceProvider services)
         {
-            var logger = services.GetService<ILogger<NsbEndpointConfigFactory>>();
+            var logger = services.GetService<ILogger<EndpointConfigurationFactory>>();
 
             var config = services.GetService<IConfiguration>();
             var licenseText = config?["NServiceBusLicenseText"];
